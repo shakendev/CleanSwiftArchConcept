@@ -1,6 +1,6 @@
 # CleanSwift Architecture Concept
 
-An example of implementing a clean architecture according to Uncle Bob using Feature Models & CleanSwift patterns.
+An example of implementing a clean architecture according to Uncle Bob using DTO, FSD & CleanSwift patterns.
 
 #### `Xcode 16.3+` · `Swift 6.1+` · `iOS 18.0+`
 
