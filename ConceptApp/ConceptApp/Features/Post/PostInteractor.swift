@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 protocol PostDataStore {
     var id: Int? { get set }
 }
@@ -11,40 +12,20 @@ protocol PostBusinessLogic: AnyObject {
 
 final class PostInteractor: PostDataStore {
     var id: Int?
-    
     var presenter: (any PostPresentationLogic)?
+    private let worker: (any PostWorkingLogic) = PostWorker()
 }
 
 extension PostInteractor: PostBusinessLogic {
     func loadPost(with request: PostModel.FetchPost.Request) {
-        // FIXME: - move to post worker n' add DIP abstraction, add network manager, extract DTO to API folder
         guard let id else { return }
 
         Task(priority: .background) {
-            guard
-                let url = URL(string: "https://dummyjson.com/posts/\(id)"),
-                let (data, _) = try? await URLSession.shared.data(from: url),
-                let dto = try? JSONDecoder().decode(PostDTO.self, from: data)
-            else { return }
+            guard let response = await worker.loadPost(with: id) else { return }
 
             await MainActor.run {
-                let response = dto.mapToResponse()
-
                 presenter?.presentPost(with: response)
             }
         }
-    }
-}
-
-struct PostDTO: Decodable {
-    let userId: Int
-    let id: Int
-    let title: String
-    let body: String
-}
-
-extension PostDTO {
-    func mapToResponse() -> PostModel.FetchPost.Response {
-        .init(userId: userId, id: id, title: title, body: body)
     }
 }
